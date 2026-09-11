@@ -3,6 +3,7 @@ Minimal MCP server with PDF tools:
   - make_pdf: generates a simple PDF from title/body text
   - list_pdfs: lists PDF files you've placed in the pdfs/ folder
   - get_pdf: returns one of your own PDF files by name
+  - get_pdf_base64: returns one of your own PDF files as a base64 string
 
 Run locally over stdio:
     python server.py
@@ -115,6 +116,22 @@ def get_pdf(filename: str) -> list[types.EmbeddedResource]:
             f"'{filename}' not found in pdfs/. Use list_pdfs to see what's available."
         )
     return _pdf_resource(path.read_bytes(), path.name)
+
+
+@mcp.tool()
+def get_pdf_base64(filename: str) -> str:
+    """
+    Return one of your own PDF files from the pdfs/ folder as a base64-encoded string.
+
+    Args:
+        filename: Name of the file, e.g. "resume.pdf" (extension optional).
+    """
+    path = _safe_pdf_path(filename)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"'{filename}' not found in pdfs/. Use list_pdfs to see what's available."
+        )
+    return base64.b64encode(path.read_bytes()).decode("ascii")
 
 
 if __name__ == "__main__":

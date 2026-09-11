@@ -119,6 +119,36 @@ def get_pdf(filename: str) -> list[types.EmbeddedResource]:
 
 
 @mcp.tool()
+def get_pdf_resource_test(filename: str) -> list[types.EmbeddedResource]:
+    """
+    TEST TOOL: return one of your PDF files as an EmbeddedResource with
+    annotations.audience set to ["user"], to check whether the current
+    client honors that annotation for user-facing (non-model) delivery.
+    Compare behavior against get_pdf / get_pdf_base64.
+
+    Args:
+        filename: Name of the file, e.g. "resume.pdf" (extension optional).
+    """
+    path = _safe_pdf_path(filename)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"'{filename}' not found in pdfs/. Use list_pdfs to see what's available."
+        )
+    b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+    return [
+        types.EmbeddedResource(
+            type="resource",
+            resource=types.BlobResourceContents(
+                uri=f"pdf://test/{path.name}",
+                mimeType="application/pdf",
+                blob=b64,
+            ),
+            annotations=types.Annotations(audience=["user"], priority=1.0),
+        )
+    ]
+
+
+@mcp.tool()
 def get_pdf_base64(filename: str) -> str:
     """
     Return one of your own PDF files from the pdfs/ folder as a base64-encoded string.
